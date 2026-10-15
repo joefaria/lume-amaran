@@ -35,6 +35,7 @@ An optional advanced import accepts supported lighting JSON, an existing unencry
 
 - Compact glass instrument panel with Phosphor icons and a monochrome menu bar symbol.
 - Native Liquid Glass on macOS 26+, translucent material fallback on older systems.
+- Ambient temperature glow behind the controls, visible only while the connected light reports its emitter on. Warm amber through neutral light to cool blue, based on confirmed temperature.
 - Light and dark appearance; follows macOS by default, with optional app overrides in settings.
 - One selected light, saved locally.
 - Direct PB-GATT pairing and authenticated Mesh Proxy connection.
@@ -73,7 +74,7 @@ To render the interface without connecting to hardware:
 /path/to/Lume.app/Contents/MacOS/Lume --render /tmp/lume-preview.png connected
 ```
 
-Render states are `connected`, `setup`, `offline`, `pending` and `error`. Their light settings are illustrative. Development-only `--pair`, `--verify-control`, `--verify-temperature` and `--verify-power` modes perform real Bluetooth operations; the verification modes briefly change and restore the relevant setting, so they are not part of the automated tests.
+Render states include `connected`, `setup`, `offline`, `pending`, `error`, `off`, `warm` and `cool`. Their light settings are illustrative. Development-only `--pair`, `--verify-control`, `--verify-temperature` and `--verify-power` modes perform real Bluetooth operations; the verification modes briefly change and restore the relevant setting, so they are not part of the automated tests.
 
 The offscreen `--render` helper is a layout preview; macOS compositor glass/vibrancy may not be captured faithfully. Use the native app for final appearance validation.
 

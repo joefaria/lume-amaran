@@ -25,7 +25,7 @@ Baixe `Lume-macOS.zip` em [Releases](https://github.com/joefaria/lume-amaran/rel
 - Leitura real confirmada: luz acesa, intensidade de 20% e temperatura de 4500 K.
 - Reconexão em novo processo confirmada. Controle real de brilho validado: 20% → 15% → 20%, com cada valor confirmado pela luz. A temperatura permaneceu em 4500 K.
 - Ajuste físico de temperatura confirmado: 4500 K → 4600 K → 4500 K. Liga/desliga confirmado: acesa → apagada → acesa. Ambos preservaram brilho de 20%.
-- Versão 0.3.0 instalada em `~/Applications/Lume.app`. O painel real foi conferido conectado, com os controles habilitados e leitura de mudanças posteriores no brilho.
+- Versão 0.3.1 instalada em `~/Applications/Lume.app`. O painel real foi conferido conectado, com os controles habilitados e leitura de mudanças posteriores no brilho.
 - O app não redefine Bluetooth nem atualiza firmware. Só inicia um novo pareamento quando uma luz pronta é selecionada. Uma luz que guarde um vínculo antigo exige BT Reset físico feito pelo usuário.
 
 ## Abrir
@@ -62,6 +62,8 @@ Depois de importar, selecione sua amaran 60x S. Ligue a luz, aproxime o Mac e co
 ## Interface glass
 
 O painel espacial reúne liga/desliga, intensidade e temperatura em dois módulos de vidro com escalas discretas. Usa Liquid Glass nativo no macOS 26 ou posterior e material translúcido nas versões anteriores. Respeita Reduzir Transparência e Aumentar Contraste. Os ícones de interface são Phosphor; o ícone glass do aplicativo é separado do símbolo monocromático da barra de menus. Ajustes rápidos, conexão e preferências ficam no menu de opções.
+
+Com a luz conectada e o emissor aceso, um gradiente ambiente aparece atrás dos controles e acompanha a temperatura confirmada: âmbar nas temperaturas quentes e azul suave nas frias. Ele desaparece quando o emissor apaga ou a conexão cai. A decoração fica oculta com Reduzir Transparência ou Aumentar Contraste, e a transição respeita Reduzir Movimento.
 
 ## Comportamento
 

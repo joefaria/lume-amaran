@@ -10,7 +10,23 @@ struct Panel: View {
     @ObservedObject private var appearance = AppearanceSettings.shared
     var quit: () -> Void = { NSApplication.shared.terminate(nil) }
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.colorScheme) private var scheme
     private var adjusting: Bool { light.canControl && light.status?.on == true }
+    private var ambientVisible: Bool {
+        light.ready && light.status?.on == true && !light.showSetup && !light.showPreferences
+            && !reduceTransparency && contrast != .increased
+    }
+    private var ambientKelvin: Double { light.status?.kelvin ?? 4500 }
+    /// An interface palette, not a calibrated simulation of the emitted spectrum.
+    private var ambientColor: Color {
+        let k = min(6500, max(2700, ambientKelvin))
+        let warm = (1.0, 0.40, 0.08), neutral = (1.0, 0.79, 0.49), cool = (0.48, 0.72, 1.0)
+        let a = k <= 4500 ? warm : neutral, b = k <= 4500 ? neutral : cool
+        let t = k <= 4500 ? (k - 2700) / 1800 : (k - 4500) / 2000
+        return Color(red: a.0 + (b.0 - a.0) * t, green: a.1 + (b.1 - a.1) * t, blue: a.2 + (b.2 - a.2) * t)
+    }
     var body: some View {
         VStack(spacing: 0) {
             header
@@ -32,8 +48,19 @@ struct Panel: View {
         }
         .frame(width: Self.width, height: Self.height)
         .background {
-            if reduceTransparency { Color(nsColor: .windowBackgroundColor) }
-            else { Rectangle().fill(.regularMaterial) }
+            ZStack {
+                if reduceTransparency { Color(nsColor: .windowBackgroundColor) }
+                else { Rectangle().fill(.regularMaterial) }
+                ZStack {
+                    RadialGradient(colors: [ambientColor.opacity(scheme == .dark ? 0.68 : 0.40), .clear],
+                                   center: UnitPoint(x: 0.08, y: 0.78), startRadius: 6, endRadius: 310)
+                    RadialGradient(colors: [ambientColor.opacity(scheme == .dark ? 0.24 : 0.12), .clear],
+                                   center: UnitPoint(x: 1, y: 0.16), startRadius: 0, endRadius: 220)
+                }
+                .opacity(ambientVisible ? 1 : 0)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.45), value: ambientVisible)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.45), value: ambientKelvin)
+            }.clipped().allowsHitTesting(false).accessibilityHidden(true)
         }
         .preferredColorScheme(light.preview ? nil : appearance.mode == "dark" ? .dark : appearance.mode == "light" ? .light : nil)
     }

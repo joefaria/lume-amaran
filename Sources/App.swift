@@ -161,6 +161,10 @@ import SwiftUI
         }
         if state == "pending" { light.pending = true }
         if state == "off" { light.status = LightStatus(on: false, brightness: 65, kelvin: 4300) }
+        if state == "warm" || state == "cool" {
+            let kelvin: Double = state == "warm" ? 2700 : 6500
+            light.status = LightStatus(on: true, brightness: 65, kelvin: kelvin); light.desiredKelvin = kelvin
+        }
         if state == "preferences" { light.showPreferences = true }
         if state == "search" {
             light.scanCompleted = true

@@ -21,3 +21,7 @@ The creator requested an Apple-like native utility, a futuristic spaceflight ide
 - [Phosphor Icons](https://github.com/phosphor-icons/core), bundled at the commit recorded in Resources/Phosphor/README.md. Original MIT notices are preserved.
 
 Native app screenshots are used for final appearance review because offscreen bitmap capture does not faithfully reproduce the macOS glass compositor. The 65 protocol tests validate the unchanged transport, not the appearance.
+
+## 0.3.1 · Temperature ambience
+
+A soft, asymmetrical radial gradient sits above the root material and below all controls. Its palette interpolates amber (2700 K), warm neutral (4500 K), and pale blue (6500 K). This is an interface palette, not a calibrated spectral simulation. It uses confirmed `LightStatus.kelvin` and is visible only when the selected fixture is connected and reports its emitter on. Setup/settings, disconnected and off states stay neutral. Reduced transparency or increased contrast suppress the decoration; reduced motion suppresses the 450 ms transitions. No Bluetooth behavior changes.
