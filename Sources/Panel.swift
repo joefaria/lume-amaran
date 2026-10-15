@@ -1,241 +1,227 @@
 import SwiftUI
 import ServiceManagement
 
-private let amber = Color(red: 0.94, green: 0.61, blue: 0.22)
+private let signal = Color(nsColor: .systemOrange)
 
 struct Panel: View {
+    static let width: CGFloat = 336
+    static let height: CGFloat = 396
     @ObservedObject var light: LightController
+    @ObservedObject private var appearance = AppearanceSettings.shared
     var quit: () -> Void = { NSApplication.shared.terminate(nil) }
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    private var adjusting: Bool { light.canControl && light.status?.on == true }
     var body: some View {
         VStack(spacing: 0) {
             header
-            Divider().padding(.horizontal, 20)
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    if light.configuration == nil || light.showSetup { setup }
+                VStack(alignment: .leading, spacing: 14) {
+                    if light.showPreferences { preferences }
+                    else if light.configuration == nil || light.showSetup { setup }
                     else { controls }
                     if let error = light.error {
-                        HStack(alignment: .top, spacing: 9) {
-                            Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
-                            Text(error).font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        HStack(alignment: .top, spacing: 8) {
+                            PhosphorIcon(name: "warning-circle").foregroundStyle(signal)
+                            Text(error).font(.system(size: 12)).fixedSize(horizontal: false, vertical: true)
                         }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.orange.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
+                            .background(signal.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                            .accessibilityElement(children: .combine)
                     }
-                }.padding(20)
+                }.padding(.horizontal, 16).padding(.bottom, 16)
             }.scrollIndicators(.hidden)
-            Divider().padding(.horizontal, 20)
-            footer
         }
-        .frame(width: 360, height: 574)
-        .background(Color(nsColor: .windowBackgroundColor))
-        .tint(amber)
-        .sheet(isPresented: $light.showPreferences) {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Preferências").font(.headline)
-                Toggle("Abrir ao iniciar sessão", isOn: $light.launchAtLogin)
-                    .onChange(of: light.launchAtLogin) { value in
-                        do {
-                            if value { try SMAppService.mainApp.register() }
-                            else { try SMAppService.mainApp.unregister() }
-                        } catch {
-                            light.launchAtLogin = SMAppService.mainApp.status == .enabled
-                            light.error = "Não foi possível alterar a inicialização automática. Verifique Ajustes do Sistema → Geral → Itens de Início."
-                        }
-                    }
-                Text("O Lume se conecta ao abrir, mas não altera os ajustes da luz automaticamente.")
-                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                Button("Concluído") { light.showPreferences = false }.buttonStyle(.borderedProminent).frame(maxWidth: .infinity, alignment: .trailing)
-            }.padding(24).frame(width: 330)
+        .frame(width: Self.width, height: Self.height)
+        .background {
+            if reduceTransparency { Color(nsColor: .windowBackgroundColor) }
+            else { Rectangle().fill(.regularMaterial) }
         }
+        .preferredColorScheme(light.preview ? nil : appearance.mode == "dark" ? .dark : appearance.mode == "light" ? .light : nil)
     }
     private var header: some View {
-        HStack(spacing: 11) {
-            Image(systemName: "sun.max.fill").font(.system(size: 19, weight: .medium))
-                .foregroundStyle(amber).frame(width: 36, height: 36)
-                .background(amber.opacity(0.12), in: RoundedRectangle(cornerRadius: 11))
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Lume").font(.system(size: 16, weight: .semibold))
-                Text("Controle da iluminação").font(.system(size: 11)).foregroundStyle(.secondary)
-            }
+        HStack(spacing: 8) {
+            if light.showPreferences || (light.showSetup && light.configuration != nil) {
+                Button {
+                    light.showPreferences = false; light.showSetup = false
+                } label: { PhosphorIcon(name: "caret-left", size: 15).frame(width: 24, height: 24) }
+                    .buttonStyle(.plain).help("Voltar").accessibilityLabel("Voltar")
+            } else { PhosphorIcon(name: "planet", size: 18).foregroundStyle(.secondary) }
+            Text(light.showPreferences ? "Ajustes" : "Lume").font(.system(size: 13, weight: .semibold))
             Spacer()
-            Button { light.showPreferences = true } label: { Image(systemName: "gearshape").font(.system(size: 15)) }
-                .buttonStyle(.plain).foregroundStyle(.secondary).padding(6).help("Preferências")
-                .accessibilityLabel("Preferências")
-        }.padding(.horizontal, 20).padding(.vertical, 16)
+            options
+        }.padding(.horizontal, 16).padding(.vertical, 12)
+    }
+    private var options: some View {
+        Menu {
+            Button { light.showPreferences = true } label: {
+                Label { Text("Ajustes…") } icon: { PhosphorIcon(name: "gear-six") }
+            }.keyboardShortcut(",")
+            Button { light.showPreferences = false; light.showSetup = true } label: {
+                Label { Text("Conectar luz…") } icon: { PhosphorIcon(name: "bluetooth") }
+            }.disabled(light.pending || light.pairing || light.connecting)
+            Button { if light.ready { light.requestStatus() } else { light.connect() } } label: {
+                Label { Text(light.ready ? "Atualizar estado" : "Reconectar") } icon: { PhosphorIcon(name: "arrow-clockwise") }
+            }.disabled(light.configuration == nil || light.scanning || light.connecting || light.pending)
+            Divider()
+            Menu("Ajustes rápidos") {
+                Button("Aconchego · 25% · 3200 K") { light.apply(kelvin: 3200, brightness: 25) }
+                Button("Trabalho · 50% · 4300 K") { light.apply(kelvin: 4300, brightness: 50) }
+                Button("Gravação · 75% · 5600 K") { light.apply(kelvin: 5600, brightness: 75) }
+            }.disabled(!adjusting)
+            Divider()
+            Button("Sair do Lume", action: quit).keyboardShortcut("q")
+        } label: {
+            PhosphorIcon(name: "dots-three", size: 20).frame(width: 26, height: 24).contentShape(Rectangle())
+        }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+            .help("Opções do Lume").accessibilityLabel("Opções do Lume")
     }
     private var controls: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(spacing: 16) {
             HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(light.configuration?.name ?? "amaran 60x S").font(.system(size: 19, weight: .semibold)).lineLimit(2)
-                    HStack(spacing: 5) {
-                        Circle().fill(light.ready ? Color.green : Color.secondary.opacity(0.5)).frame(width: 5, height: 5)
-                        Text(light.connection).font(.system(size: 11)).foregroundStyle(.secondary)
-                    }
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(light.configuration?.name ?? "amaran").font(.system(size: 15, weight: .semibold)).lineLimit(2)
+                    HStack(spacing: 6) {
+                        if light.pending || light.connecting { ProgressView().controlSize(.mini) }
+                        else { Circle().fill(light.ready ? Color.green : Color.secondary).frame(width: 5, height: 5) }
+                        Text(light.pending ? "Aplicando…" : light.connection)
+                            .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1).help(light.connection)
+                    }.accessibilityElement(children: .combine)
                 }
-                Spacer()
+                Spacer(minLength: 4)
                 Button { light.togglePower() } label: {
-                    Image(systemName: "power").font(.system(size: 20, weight: .medium))
-                        .frame(width: 46, height: 46)
-                        .foregroundStyle(light.status?.on == true ? Color.white : Color.secondary)
-                        .background(light.status?.on == true ? amber : Color.primary.opacity(0.05), in: Circle())
-                }.buttonStyle(.plain).disabled(!light.canControl)
+                    PhosphorIcon(name: "power", size: 21)
+                        .foregroundStyle(light.status?.on == true ? signal : Color.secondary)
+                        .frame(width: 42, height: 42).contentShape(Circle())
+                }.buttonStyle(.plain).modifier(InstrumentGlass(radius: 21)).disabled(!light.canControl)
                     .help(light.status?.on == true ? "Apagar luz" : "Acender luz")
                     .accessibilityLabel(light.status?.on == true ? "Apagar luz" : "Acender luz")
+                    .accessibilityValue(light.status?.on == true ? "Acesa" : "Apagada")
+            }.padding(.horizontal, 3).padding(.bottom, 1)
+            instrument(name: "Intensidade", icon: "sun", value: light.status == nil ? "—" : String(format: "%.0f", light.desiredBrightness), unit: "%") {
+                Slider(value: $light.desiredBrightness, in: 0...100, onEditingChanged: { editing in
+                    if !editing { light.desiredBrightness = light.desiredBrightness.rounded(); light.setBrightness() }
+                }).tint(signal).disabled(!adjusting)
+                    .accessibilityLabel("Intensidade").accessibilityValue("\(Int(light.desiredBrightness)) por cento")
+                scale(left: "0", right: "100%", warm: false)
             }
-            VStack(spacing: 0) {
-                VStack(alignment: .leading, spacing: 13) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Label("Intensidade", systemImage: "sun.max").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
-                        Spacer()
-                        HStack(alignment: .firstTextBaseline, spacing: 2) {
-                            Text(light.status == nil ? "—" : String(format: "%.0f", light.desiredBrightness)).font(.system(size: 30, weight: .medium, design: .rounded)).monospacedDigit()
-                            Text("%").font(.system(size: 13)).foregroundStyle(.secondary)
-                        }
-                    }
-                    Slider(value: $light.desiredBrightness, in: 0...100, onEditingChanged: { editing in
-                        if !editing { light.desiredBrightness = light.desiredBrightness.rounded(); light.setBrightness() }
-                    }).disabled(!light.canControl || light.status?.on != true)
-                        .accessibilityLabel("Intensidade").accessibilityValue("\(Int(light.desiredBrightness)) por cento")
-                    HStack {
-                        Text("Suave"); Spacer(); Text("Intensa")
-                    }.font(.system(size: 10)).foregroundStyle(.tertiary)
-                }.padding(16)
-                Divider().padding(.horizontal, 16)
-                VStack(alignment: .leading, spacing: 13) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Label("Temperatura", systemImage: "thermometer.medium").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
-                        Spacer()
-                        HStack(alignment: .firstTextBaseline, spacing: 3) {
-                            Text(light.status == nil ? "—" : String(format: "%.0f", light.desiredKelvin)).font(.system(size: 24, weight: .medium, design: .rounded)).monospacedDigit()
-                            Text("K").font(.system(size: 12)).foregroundStyle(.secondary)
-                        }
-                    }
-                    Slider(value: $light.desiredKelvin, in: 2700...6500, onEditingChanged: { editing in
-                        if !editing { light.desiredKelvin = (light.desiredKelvin / 100).rounded() * 100; light.setKelvin() }
-                    }).tint(Color(red: 0.72, green: 0.64, blue: 0.5)).disabled(!light.canControl || light.status?.on != true)
-                        .accessibilityLabel("Temperatura de cor").accessibilityValue("\(Int(light.desiredKelvin)) kelvin")
-                    HStack(spacing: 5) {
-                        Circle().fill(Color(red: 1, green: 0.69, blue: 0.36)).frame(width: 6, height: 6)
-                        Text("Quente · 2700 K"); Spacer(); Text("6500 K · Fria")
-                        Circle().fill(Color(red: 0.66, green: 0.81, blue: 0.99)).frame(width: 6, height: 6)
-                    }.font(.system(size: 10)).foregroundStyle(.tertiary)
-                }.padding(16)
-            }.background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 18))
-
-            VStack(alignment: .leading, spacing: 10) {
-                Text("AJUSTES RÁPIDOS").font(.system(size: 9, weight: .semibold)).tracking(1.3).foregroundStyle(.tertiary)
-                HStack(spacing: 8) {
-                    preset("Aconchego", symbol: "moon", kelvin: 3200, brightness: 25)
-                    preset("Trabalho", symbol: "desktopcomputer", kelvin: 4300, brightness: 50)
-                    preset("Gravação", symbol: "video", kelvin: 5600, brightness: 75)
-                }
+            instrument(name: "Temperatura", icon: "thermometer", value: light.status == nil ? "—" : String(format: "%.0f", light.desiredKelvin), unit: "K") {
+                Slider(value: $light.desiredKelvin, in: 2700...6500, onEditingChanged: { editing in
+                    if !editing { light.desiredKelvin = (light.desiredKelvin / 100).rounded() * 100; light.setKelvin() }
+                }).tint(signal).disabled(!adjusting)
+                    .accessibilityLabel("Temperatura de cor").accessibilityValue("\(Int(light.desiredKelvin)) kelvin")
+                scale(left: "2700 K", right: "6500 K", warm: true)
             }
-            HStack(spacing: 6) {
-                if light.pending { ProgressView().controlSize(.mini); Text("Aguardando confirmação…") }
-                else if light.ready && light.status != nil {
-                    Image(systemName: light.error == nil ? "checkmark.circle" : "clock")
-                    Text(light.error == nil ? "Estado confirmado pela luz" : "Último estado recebido")
-                }
-                else if light.ready { ProgressView().controlSize(.mini); Text("Consultando estado da luz…") }
-                else { Image(systemName: "bolt.slash"); Text("Conecte para ajustar sua luz") }
-            }.font(.system(size: 10)).foregroundStyle(.secondary).frame(maxWidth: .infinity)
+            if !light.ready && !light.connecting {
+                Button("Reconectar") { light.connect() }.buttonStyle(.bordered).controlSize(.small)
+                    .disabled(light.scanning || light.pending)
+            }
         }
     }
-    private func preset(_ title: String, symbol: String, kelvin: Double, brightness: Double) -> some View {
-        Button { light.apply(kelvin: kelvin, brightness: brightness) } label: {
-            VStack(spacing: 7) {
-                Image(systemName: symbol).font(.system(size: 16, weight: .regular)).foregroundStyle(amber)
-                Text(title).font(.system(size: 10, weight: .medium))
-            }.frame(maxWidth: .infinity).padding(.vertical, 12)
-                .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12))
-        }.buttonStyle(.plain).disabled(!light.canControl || light.status?.on != true)
-            .help("\(Int(brightness))% · \(Int(kelvin)) K")
-            .accessibilityLabel("\(title), \(Int(brightness)) por cento, \(Int(kelvin)) kelvin")
+    private func instrument<Content: View>(name: String, icon: String, value: String, unit: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 9) {
+            HStack(spacing: 7) {
+                PhosphorIcon(name: icon, size: 16).foregroundStyle(.secondary)
+                Text(name).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+                Spacer()
+                HStack(alignment: .firstTextBaseline, spacing: 3) {
+                    Text(value).font(.system(size: 25, weight: .medium, design: .rounded)).monospacedDigit()
+                    Text(unit).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+                }.accessibilityElement(children: .combine)
+            }
+            content()
+        }.padding(15).modifier(InstrumentGlass())
+    }
+    private func scale(left: String, right: String, warm: Bool) -> some View {
+        VStack(spacing: 5) {
+            HStack(alignment: .top, spacing: 0) {
+                ForEach(0..<21) { i in
+                    Rectangle().fill(Color.primary.opacity(i % 5 == 0 ? 0.27 : 0.12))
+                        .frame(width: 1, height: i % 5 == 0 ? 5 : 3)
+                    if i < 20 { Spacer(minLength: 0) }
+                }
+            }.accessibilityHidden(true)
+            HStack {
+                if warm { Circle().fill(Color(nsColor: .systemOrange)).frame(width: 4, height: 4).accessibilityHidden(true) }
+                Text(left); Spacer(); Text(right)
+                if warm { Circle().fill(Color(nsColor: .systemBlue)).frame(width: 4, height: 4).accessibilityHidden(true) }
+            }.font(.system(size: 10)).foregroundStyle(.secondary).monospacedDigit()
+        }
+    }
+    private var preferences: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Toggle("Abrir ao iniciar sessão", isOn: $light.launchAtLogin)
+                .toggleStyle(.switch).controlSize(.small)
+                .onChange(of: light.launchAtLogin) { value in
+                    do { if value { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
+                    catch {
+                        light.launchAtLogin = SMAppService.mainApp.status == .enabled
+                        light.error = "Verifique Ajustes do Sistema → Geral → Itens de Início."
+                    }
+                }
+            Divider()
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Aparência").font(.system(size: 12, weight: .medium))
+                Picker("Aparência", selection: Binding(get: { appearance.mode }, set: { appearance.select($0) })) {
+                    Text("Sistema").tag("system")
+                    Text("Claro").tag("light")
+                    Text("Escuro").tag("dark")
+                }.pickerStyle(.segmented).labelsHidden()
+                Text("Sistema acompanha a aparência do macOS.")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            Divider()
+            Link("Código e comunidade", destination: URL(string: "https://github.com/joefaria/lume-amaran")!)
+                .font(.system(size: 12))
+            Text("Lume \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")")
+                .font(.system(size: 11)).foregroundStyle(.secondary)
+        }.padding(15).modifier(InstrumentGlass())
     }
     private var setup: some View {
         VStack(alignment: .leading, spacing: 16) {
             if light.pairing || light.connecting {
-                VStack(alignment: .leading, spacing: 18) {
-                    ProgressView().controlSize(.large).tint(amber)
-                    Text("Conectando sua luz").font(.system(size: 23, weight: .semibold))
-                    Text(light.connection).font(.system(size: 13)).foregroundStyle(.secondary)
-                    Text("Mantenha a luz ligada e próxima ao Mac. Os ajustes de iluminação não serão alterados durante o pareamento.")
-                        .font(.system(size: 12)).foregroundStyle(.secondary).lineSpacing(3)
-                    Button("Cancelar") { light.disconnect(); light.connection = "Conexão cancelada" }.buttonStyle(.bordered)
-                }.padding(.vertical, 24)
+                ProgressView().controlSize(.small)
+                Text("Conectando sua luz").font(.system(size: 17, weight: .semibold))
+                Text(light.connection).font(.system(size: 12)).foregroundStyle(.secondary)
+                Text("Mantenha a luz ligada e perto do Mac.").font(.system(size: 12)).foregroundStyle(.secondary)
+                Button("Cancelar") { light.disconnect(); light.connection = "Conexão cancelada" }.buttonStyle(.bordered)
             } else if !light.candidates.isEmpty {
-                Text("Escolha sua luz").font(.system(size: 22, weight: .semibold))
-                Text("Selecione a amaran 60x S que deseja controlar.").font(.system(size: 12)).foregroundStyle(.secondary)
+                Text("Escolha sua luz").font(.system(size: 17, weight: .semibold))
                 ForEach(light.candidates) { item in
                     Button { light.choose(item) } label: {
-                        HStack { Image(systemName: "lightbulb").foregroundStyle(amber); Text(item.name); Spacer(); Image(systemName: "chevron.right").font(.caption) }
-                            .padding(14).background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
-                    }.buttonStyle(.plain)
+                        HStack { PhosphorIcon(name: "sun"); Text(item.name); Spacer() }.padding(12)
+                    }.buttonStyle(.plain).modifier(InstrumentGlass(radius: 12))
                 }
             } else {
-                ZStack {
-                    Circle().fill(amber.opacity(0.08)).frame(width: 68, height: 68)
-                    Image(systemName: "lightbulb.max").font(.system(size: 30, weight: .light)).foregroundStyle(amber)
-                }.padding(.top, 4)
-                Text("Conecte sua amaran").font(.system(size: 23, weight: .semibold)).tracking(-0.5)
-                Text("Brilho e temperatura de cor,\nsempre à mão na barra de menus.")
-                    .font(.system(size: 13)).foregroundStyle(.secondary).lineSpacing(3)
-                VStack(alignment: .leading, spacing: 12) {
-                    Label("Ligue a luz e aproxime o Mac.", systemImage: "1.circle")
-                    Label("Busque e selecione a sua amaran.", systemImage: "2.circle")
-                    Label("Conecte e faça seus ajustes.", systemImage: "3.circle")
-                }.font(.system(size: 12)).foregroundStyle(.secondary).padding(.vertical, 5)
+                Text("Sua luz, ao alcance.").font(.system(size: 20, weight: .semibold))
+                Text("Ligue a amaran e aproxime o Mac.").font(.system(size: 12)).foregroundStyle(.secondary)
                 Button { light.connect(pairingSearch: true) } label: {
-                    Text(light.scanning ? "Buscando luzes…" : "Buscar minha amaran").frame(maxWidth: .infinity).padding(.vertical, 4)
-                }.buttonStyle(.borderedProminent).controlSize(.large).tint(amber).foregroundStyle(.black)
-                    .disabled(light.scanning)
-                if !light.nearby.isEmpty {
-                    ForEach(light.nearby.sorted(by: { $0.canPair && !$1.canPair })) { entry in
-                        Button { light.pair(entry.id) } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: "lightbulb").foregroundStyle(amber)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(entry.name).font(.system(size: 12, weight: .medium)).lineLimit(2)
-                                    Text(entry.canPair ? "Pronta para parear" : "Já pareada · use BT Reset na luz").font(.system(size: 10)).foregroundStyle(.secondary)
-                                }
-                                Spacer(minLength: 2)
-                                if entry.canPair { Image(systemName: "chevron.right").font(.system(size: 10)) }
-                            }.padding(12).background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
-                        }.buttonStyle(.plain).disabled(!entry.canPair)
-                    }
-                } else if light.scanCompleted {
-                    Text("Nenhuma luz detectada nesta busca. Ligue a luz e aproxime o Mac para tentar novamente.")
-                        .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    HStack { if light.scanning { ProgressView().controlSize(.mini) }; Text(light.scanning ? "Buscando…" : "Buscar luz") }
+                        .frame(maxWidth: .infinity)
+                }.buttonStyle(.borderedProminent).controlSize(.large).tint(signal).disabled(light.scanning)
+                ForEach(light.nearby.sorted(by: { $0.canPair && !$1.canPair })) { entry in
+                    Button { light.pair(entry.id) } label: {
+                        HStack(spacing: 10) {
+                            PhosphorIcon(name: "bluetooth")
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(entry.name).font(.system(size: 12, weight: .medium))
+                                Text(entry.canPair ? "Pronta para parear" : "Já pareada · requer BT Reset")
+                                    .font(.system(size: 11)).foregroundStyle(.secondary)
+                            }; Spacer(minLength: 0)
+                        }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                    }.buttonStyle(.plain).modifier(InstrumentGlass(radius: 12)).disabled(!entry.canPair)
                 }
-                Divider()
-                Text("Sem celular. Sem outro aplicativo.").font(.system(size: 11, weight: .semibold))
-                Text("Se a luz guardar um vínculo antigo, use BT Reset nela e aguarde Success antes de buscar. Isso remove o pareamento anterior.")
-                    .font(.system(size: 11)).foregroundStyle(.secondary).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
-                Button(light.showAdvanced ? "Ocultar outras opções" : "Já tenho uma configuração…") { light.showAdvanced.toggle() }
-                    .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(.secondary)
-                if light.showAdvanced {
-                    HStack {
+                if light.scanCompleted && light.nearby.isEmpty {
+                    Text("Nenhuma luz encontrada. Verifique se ela está ligada e tente novamente.")
+                        .font(.system(size: 12)).foregroundStyle(.secondary)
+                }
+                Text("Já pareou em outro app? Use BT Reset na luz e aguarde Success. Isso remove o vínculo anterior.")
+                    .font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                DisclosureGroup("Importar conexão existente", isExpanded: $light.showAdvanced) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Button("Sidus Link / arquivo…") { light.importIPhone() }
-                        Spacer()
                         Button("amaran Desktop…") { light.importDesktop() }
-                    }.buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(.secondary)
-                }
+                    }.padding(.top, 10).font(.system(size: 12))
+                }.font(.system(size: 11)).foregroundStyle(.secondary)
             }
-            if light.configuration != nil { Button("Voltar ao controle") { light.showSetup = false }.buttonStyle(.plain).font(.caption) }
-        }
-    }
-    private var footer: some View {
-        HStack {
-            if light.configuration != nil {
-                Button { light.showSetup.toggle() } label: { Label("Conexão", systemImage: "antenna.radiowaves.left.and.right") }
-                    .disabled(light.pending)
-                Spacer()
-                Button(light.ready ? "Atualizar" : "Reconectar") { if light.ready { light.requestStatus() } else { light.connect() } }
-                    .disabled(light.scanning || light.connecting || light.pending)
-                Divider().frame(height: 10).padding(.horizontal, 4)
-            } else { Spacer() }
-            Button("Sair", action: quit)
-        }.buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(.secondary).padding(.horizontal, 20).padding(.vertical, 13)
+        }.frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
     }
 }

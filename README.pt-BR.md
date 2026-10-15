@@ -25,12 +25,12 @@ Baixe `Lume-macOS.zip` em [Releases](https://github.com/joefaria/lume-amaran/rel
 - Leitura real confirmada: luz acesa, intensidade de 20% e temperatura de 4500 K.
 - Reconexão em novo processo confirmada. Controle real de brilho validado: 20% → 15% → 20%, com cada valor confirmado pela luz. A temperatura permaneceu em 4500 K.
 - Ajuste físico de temperatura confirmado: 4500 K → 4600 K → 4500 K. Liga/desliga confirmado: acesa → apagada → acesa. Ambos preservaram brilho de 20%.
-- Versão 0.2.0 instalada em `~/Applications/Lume.app`. O painel real foi conferido conectado, com os controles habilitados e leitura de mudanças posteriores no brilho.
+- Versão 0.3.0 instalada em `~/Applications/Lume.app`. O painel real foi conferido conectado, com os controles habilitados e leitura de mudanças posteriores no brilho.
 - O app não redefine Bluetooth nem atualiza firmware. Só inicia um novo pareamento quando uma luz pronta é selecionada. Uma luz que guarde um vínculo antigo exige BT Reset físico feito pelo usuário.
 
 ## Abrir
 
-Descompacte `Lume-macOS.zip` e abra `Lume.app`. Um ícone de sol aparece na barra de menus. Clique nele para abrir o painel. Em Preferências, é possível solicitar a abertura ao iniciar sessão; essa opção vem desligada.
+Descompacte `Lume-macOS.zip` e abra `Lume.app`. Um símbolo orbital monocromático aparece na barra de menus. Clique nele para abrir o painel. No menu de opções, abra Ajustes para escolher Sistema, Claro ou Escuro e solicitar a abertura ao iniciar sessão; essa opção vem desligada.
 
 A assinatura é local/ad-hoc, sem notarização Apple. A verificação local de assinatura não equivale à distribuição pela App Store ou aprovação de Gatekeeper em outro Mac.
 
@@ -58,6 +58,10 @@ Em **Já tenho uma configuração… → Sidus Link / arquivo…**, o importador
 O fluxo alternativo **Usar amaran Desktop…** lê uma configuração local do aplicativo oficial. Ele não instala nem abre o aplicativo oficial, nem importa automaticamente dados do Sidus do iPhone. Caso a luz precise ser pareada novamente no aplicativo oficial, isso exige uma decisão separada do usuário.
 
 Depois de importar, selecione sua amaran 60x S. Ligue a luz, aproxime o Mac e conecte. A identidade da rede e as mensagens são autenticadas. Os controles só são liberados depois que a luz responde com seu estado. Se o Sidus Link estiver ocupando a conexão, pode ser necessário fechá-lo durante o teste.
+
+## Interface glass
+
+O painel espacial reúne liga/desliga, intensidade e temperatura em dois módulos de vidro com escalas discretas. Usa Liquid Glass nativo no macOS 26 ou posterior e material translúcido nas versões anteriores. Respeita Reduzir Transparência e Aumentar Contraste. Os ícones de interface são Phosphor; o ícone glass do aplicativo é separado do símbolo monocromático da barra de menus. Ajustes rápidos, conexão e preferências ficam no menu de opções.
 
 ## Comportamento
 
@@ -94,7 +98,7 @@ Para inspecionar a interface sem Bluetooth:
 /caminho/para/Lume.app/Contents/MacOS/Lume --render /caminho/preview.png connected
 ```
 
-Os estados `connected`, `setup`, `offline`, `pending` e `error` geram imagens com dados ilustrativos e encerram o processo. A imagem em `docs/preview.png` é uma **prévia visual com dados ilustrativos**, não evidência de conexão à luz.
+Os estados `connected`, `setup`, `offline`, `pending` e `error` geram imagens com dados ilustrativos e encerram o processo. O renderizador é uma prévia de layout e pode não capturar fielmente o vidro e a vibrância do compositor do macOS. As imagens `docs/preview-light.png` e `docs/preview-dark.png` mostram o painel nativo.
 
 ## Licença
 

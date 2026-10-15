@@ -1,6 +1,6 @@
 # Light compatibility
 
-Lume 0.2.0 was tested with one **amaran 60x S**. It is not a universal amaran controller yet.
+Lume 0.3.0 was tested with one **amaran 60x S**. It is not a universal amaran controller yet.
 
 | Model or capability | Status in Lume |
 | --- | --- |

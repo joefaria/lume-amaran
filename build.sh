@@ -14,6 +14,7 @@ xcrun swiftc -swift-version 5 -O -target arm64-apple-macosx13.0 -module-cache-pa
   Sources/*.swift -o "$app/Contents/MacOS/Lume" \
   -framework AppKit -framework SwiftUI -framework CoreBluetooth -framework Security -framework ServiceManagement -lsqlite3
 cp Info.plist "$app/Contents/Info.plist"
+ditto --noextattr --norsrc Resources "$app/Contents/Resources"
 cp THIRD_PARTY_NOTICES.md "$app/Contents/Resources/THIRD_PARTY_NOTICES.md"
 cp LICENSE "$app/Contents/Resources/LICENSE"
 xattr -dr com.apple.FinderInfo "$app" 2>/dev/null || true

@@ -1,14 +1,14 @@
 # Lume
 
-A native macOS menu bar app for your amaran light. Pair directly over Bluetooth, then control power, brightness and white temperature from the sun icon. No phone, Sidus Link, amaran Desktop or background web server required.
+A native macOS glass control panel for your amaran light. Pair directly over Bluetooth, then control power, brightness and white temperature from the sun icon. No phone, Sidus Link, amaran Desktop or background web server required.
 
 **Verified with the amaran 60x S. Other models are not verified in Lume yet.**
 
 [Português](README.pt-BR.md) · [Download](https://github.com/joefaria/lume-amaran/releases) · [Compatibility](COMPATIBILITY.md) · [Contributing](CONTRIBUTING.md)
 
-![Lume interface preview with illustrative light settings](docs/preview.png)
+<img src="docs/preview-light.png" alt="Lume glass panel in light appearance" width="336"> <img src="docs/preview-dark.png" alt="Lume glass panel in dark appearance" width="336">
 
-*Interface preview with illustrative values. See the hardware validation record in [COMPATIBILITY.md](COMPATIBILITY.md) for real-device results.*
+*Native panel screenshots. See [COMPATIBILITY.md](COMPATIBILITY.md) for hardware validation and [the design notes](docs/DESIGN.md) for materials and accessibility.*
 
 ## Download and run
 
@@ -33,10 +33,13 @@ An optional advanced import accepts supported lighting JSON, an existing unencry
 
 ## What works today
 
+- Compact glass instrument panel with Phosphor icons and a monochrome menu bar symbol.
+- Native Liquid Glass on macOS 26+, translucent material fallback on older systems.
+- Light and dark appearance; follows macOS by default, with optional app overrides in settings.
 - One selected light, saved locally.
 - Direct PB-GATT pairing and authenticated Mesh Proxy connection.
 - Emitter power and 0–100% brightness.
-- White temperature **2700–6500 K** and three fixed presets.
+- White temperature **2700–6500 K**. Three fixed presets are available under the options menu.
 - Commands confirmed by the light, with explicit timeout handling.
 - Optional launch at login, disabled by default.
 - Persistent transmission counters reserved before sending.
@@ -71,6 +74,8 @@ To render the interface without connecting to hardware:
 ```
 
 Render states are `connected`, `setup`, `offline`, `pending` and `error`. Their light settings are illustrative. Development-only `--pair`, `--verify-control`, `--verify-temperature` and `--verify-power` modes perform real Bluetooth operations; the verification modes briefly change and restore the relevant setting, so they are not part of the automated tests.
+
+The offscreen `--render` helper is a layout preview; macOS compositor glass/vibrancy may not be captured faithfully. Use the native app for final appearance validation.
 
 ## Local data
 

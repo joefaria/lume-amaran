@@ -10,7 +10,7 @@ import SwiftUI
     func applicationDidFinishLaunching(_ notification: Notification) {
         let args = CommandLine.arguments
         if let index = args.firstIndex(of: "--render"), args.count > index + 2 {
-            render(path: args[index + 1], state: args[index + 2]); return
+            render(path: args[index + 1], state: args[index + 2], appearance: args.count > index + 3 ? args[index + 3] : "light"); return
         }
         if let index = args.firstIndex(of: "--diagnose"), args.count > index + 1 {
             diagnose(path: args[index + 1]); return
@@ -29,14 +29,15 @@ import SwiftUI
         let running = NSRunningApplication.runningApplications(withBundleIdentifier: "dev.jonatas.lume")
         if running.count > 1 { NSApp.terminate(nil); return }
         NSApp.setActivationPolicy(.accessory)
+        AppearanceSettings.shared.apply()
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = item.button {
-            button.image = NSImage(systemSymbolName: "sun.max", accessibilityDescription: "Lume — controle da amaran")
+            button.image = Phosphor.image("planet")
             button.image?.isTemplate = true; button.toolTip = "Lume — controle da amaran"
             button.target = self; button.action = #selector(toggle)
         }
         popover = NSPopover(); popover.behavior = .transient
-        popover.contentSize = NSSize(width: 360, height: 574)
+        popover.contentSize = NSSize(width: Panel.width, height: Panel.height)
         popover.contentViewController = NSHostingController(rootView: Panel(light: light))
         light.restore()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { self.show() }
@@ -143,9 +144,10 @@ import SwiftUI
             } catch { self.light.disconnect(); exit(1) }
         }
     }
-    private func render(path: String, state: String) {
+    private func render(path: String, state: String, appearance: String) {
         NSApp.setActivationPolicy(.accessory); light.preview = true
-        if state != "setup" {
+        NSApp.appearance = NSAppearance(named: appearance == "dark" ? .darkAqua : .aqua)
+        if state != "setup" && state != "search" {
             light.configuration = LightConfiguration(name: "amaran 60x S", netKey: "", appKey: "", address: 2)
             light.ready = state != "offline"; light.connection = state == "offline" ? "Luz desconectada" : "Conectada"
             if state != "offline" {
@@ -158,8 +160,15 @@ import SwiftUI
             light.ready = false; light.status = nil; light.lastConfirmed = nil; light.connection = "Luz desconectada"
         }
         if state == "pending" { light.pending = true }
-        let host = NSHostingView(rootView: Panel(light: light)); host.frame = NSRect(x: 0, y: 0, width: 360, height: 574)
+        if state == "off" { light.status = LightStatus(on: false, brightness: 65, kelvin: 4300) }
+        if state == "preferences" { light.showPreferences = true }
+        if state == "search" {
+            light.scanCompleted = true
+            light.nearby = [NearbyLight(id: UUID(), name: "Mesh Device", rssi: -40, canPair: true)]
+        }
+        let host = NSHostingView(rootView: Panel(light: light)); host.frame = NSRect(x: 0, y: 0, width: Panel.width, height: Panel.height)
         let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        window.appearance = NSApp.appearance
         window.contentView = host; window.orderFront(nil); renderer = window
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
             host.layoutSubtreeIfNeeded()
