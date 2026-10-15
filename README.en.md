@@ -6,7 +6,25 @@ A native macOS glass control panel for your amaran light. Pair directly over Blu
 
 [Português](README.md) · [Support with R$5 via Pix](docs/APOIAR.md) · [Download](https://github.com/joefaria/lume-amaran/releases) · [Compatibility](COMPATIBILITY.md) · [Contributing](CONTRIBUTING.md)
 
+<p align="center">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="docs/preview-dark.png">
+    <img src="docs/media/temperature.gif" alt="Native panel temperature moving from 2700 to 6500 K, with warm-to-cool ambient color" width="44%">
+  </picture>
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="docs/preview-light.png">
+    <img src="docs/media/appearance.gif" alt="Native panel switching between dark and light appearance at 4500 K" width="44%">
+  </picture>
+</p>
+
+*Native interface demonstrations with illustrative values. Reduced-motion preference displays static alternatives.*
+
+<details>
+<summary>Static light and dark screenshots</summary>
+
 <img src="docs/preview-light.png" alt="Lume glass panel in light appearance" width="336"> <img src="docs/preview-dark.png" alt="Lume glass panel in dark appearance" width="336">
+
+</details>
 
 *Native panel screenshots. See [COMPATIBILITY.md](COMPATIBILITY.md) for hardware validation and [the design notes](docs/DESIGN.md) for materials and accessibility.*
 

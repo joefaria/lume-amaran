@@ -40,12 +40,33 @@ De 2700 a 6500 K, com um brilho de fundo que acompanha a temperatura da luz aces
 ## Feito para se sentir em casa no Mac.
 
 <p align="center">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="docs/preview-dark.png">
+    <img src="docs/media/temperature.gif" alt="Animação do painel: temperatura percorre 2700 a 6500 K e o brilho de fundo passa do âmbar ao azul suave" width="44%">
+  </picture>
+  &nbsp;
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="docs/preview-light.png">
+    <img src="docs/media/appearance.gif" alt="Animação do painel alternando entre as aparências escura e clara, com a temperatura mantida em 4500 K" width="44%">
+  </picture>
+</p>
+
+<p align="center"><sub>Da luz quente à fria · Do modo escuro ao claro</sub></p>
+
+Demonstrações do painel nativo com valores ilustrativos. O primeiro GIF mostra a temperatura e o gradiente ambiente; o segundo, a alternância de aparência. Se você prefere reduzir movimento, as imagens acima aparecem estáticas.
+
+<details>
+<summary><strong>Ver capturas estáticas em claro e escuro</strong></summary>
+
+<p align="center">
   <img src="docs/preview-light.png" alt="Captura real do Lume no modo claro, com controles de intensidade e temperatura" width="44%">
   &nbsp;
   <img src="docs/preview-dark.png" alt="Captura real do Lume no modo escuro, com o gradiente de temperatura ao fundo" width="44%">
 </p>
 
 <p align="center"><sub>Capturas do aplicativo nativo · Aparência clara e escura · Símbolo monocromático na barra de menus</sub></p>
+
+</details>
 
 O painel acompanha a aparência do sistema, com opção de escolher Claro ou Escuro. Usa **Liquid Glass no macOS 26+**, material translúcido nas versões anteriores e ícones Phosphor. Respeita os ajustes de acessibilidade de contraste, transparência e movimento.
 
