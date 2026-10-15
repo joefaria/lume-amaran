@@ -7,8 +7,8 @@
 Ligue, ajuste a intensidade e encontre a temperatura certa sem sair do que está fazendo. O **Lume** conecta sua luz diretamente ao Mac por Bluetooth, em um painel nativo com a identidade glass do macOS.
 
 <p>
-  <a href="https://github.com/joefaria/lume-amaran/releases/latest/download/Lume-macOS.zip"><img src="docs/media/download.svg" alt="Baixar para Mac" width="224" height="48"></a>
-  <a href="docs/APOIAR.md"><img src="docs/media/support.svg" alt="Apoiar com R$ 5 via Pix" width="248" height="48"></a>
+  <a href="https://github.com/joefaria/lume-amaran/releases/latest/download/Lume-macOS.zip"><img src="docs/media/download.svg" alt="Baixar para Mac" width="184" height="48"></a>
+  <a href="docs/APOIAR.md"><img src="docs/media/support.svg" alt="Apoiar com R$ 5 via Pix" width="238" height="48"></a>
 </p>
 
 **Apple Silicon · macOS 13+ · Código aberto · MIT**
@@ -108,7 +108,7 @@ A base pode evoluir com os pedidos da comunidade. Ter Bluetooth ou funcionar no 
 
 O Lume é gratuito e de código aberto. Se ele ajudou no seu dia, você pode contribuir com **R$ 5 via Pix** para apoiar a continuidade do projeto. É totalmente opcional.
 
-<a href="docs/APOIAR.md"><img src="docs/media/support.svg" alt="Contribuir com R$ 5 via Pix — abrir QR Code e copia e cola" width="248" height="48"></a>
+<a href="docs/APOIAR.md"><img src="docs/media/support.svg" alt="Contribuir com R$ 5 via Pix — abrir QR Code e copia e cola" width="238" height="48"></a>
 
 O botão abre o **QR Code e o Pix copia e cola**. Você conclui a contribuição no aplicativo do seu banco.
 
