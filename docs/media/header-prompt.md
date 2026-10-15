@@ -2,6 +2,8 @@
 
 Gerado com a ferramenta integrada imagegen. Referência visual: `Resources/AppIcon.png`, o ícone existente do Lume. O header é uma peça de identidade visual; as capturas de tela do README mostram o aplicativo real.
 
+Os glifos `power.svg`, `sun.svg` e `thermometer.svg` desta pasta são cópias dos ícones Phosphor incluídos em `Resources/Phosphor/`, com a cor ajustada para a identidade do README. A licença MIT e os avisos originais estão preservados em `Resources/Phosphor/LICENSE` e `THIRD_PARTY_NOTICES.md`. Os botões são SVGs próprios. O QR Code em `docs/support/` foi fornecido pelo criador e preservado sem edição.
+
 ## Prompt
 
 +Use case: ads-marketing.

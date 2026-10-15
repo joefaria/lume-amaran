@@ -20,8 +20,6 @@ Copie o código completo e cole na opção **Pix copia e cola** do seu banco:
 00020126580014BR.GOV.BCB.PIX01361727aa20-4810-4a6d-847b-c29036728e8f52040000530398654045.005802BR5923Jonatas Soares de Faria6009SAO PAULO621405109fzfYefA8u6304EF82
 ```
 
-O QR Code é a imagem original enviada pelo criador. O código acima foi extraído dessa imagem e conferido localmente: moeda BRL, valor de R$ 5,00 e verificação de integridade (CRC) válida.
-
 Obrigado por apoiar um projeto independente. Você também pode [reportar um problema](https://github.com/joefaria/lume-amaran/issues), [contribuir com código](../CONTRIBUTING.md) ou compartilhar o Lume com outras pessoas.
 
 made by [@jonatasfaria](https://www.instagram.com/jonatasfaria/)
