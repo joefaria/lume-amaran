@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleName</key><string>Lume</string>
+<key>CFBundleDisplayName</key><string>Lume</string>
+<key>CFBundleIdentifier</key><string>dev.jonatas.lume</string>
+<key>CFBundleExecutable</key><string>Lume</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleShortVersionString</key><string>0.2.0</string>
+<key>CFBundleVersion</key><string>2</string>
+<key>LSMinimumSystemVersion</key><string>13.0</string>
+<key>LSUIElement</key><true/>
+<key>NSHighResolutionCapable</key><true/>
+<key>NSBluetoothAlwaysUsageDescription</key><string>O Lume usa Bluetooth para ajustar a intensidade e a temperatura de cor da sua luz amaran.</string>
+<key>NSBluetoothPeripheralUsageDescription</key><string>O Lume usa Bluetooth para controlar sua luz amaran.</string>
+</dict></plist>

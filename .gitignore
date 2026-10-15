@@ -1,0 +1,13 @@
+.build/
+dist/
+.DS_Store
+.env
+.env.*
+*.db
+*.db-wal
+*.db-shm
+lights.json
+mesh*.json
+sequence-*.json
+*.p12
+*.mobileprovision
