@@ -1,122 +1,116 @@
-# Lume · controle da amaran na barra de menus
+<p align="center">
+  <img src="docs/media/header.png" alt="Lume — Sua luz. Na sua órbita. Símbolo orbital de vidro com luz âmbar sobre fundo grafite." width="100%">
+</p>
 
-Aplicativo nativo de macOS, escrito em Swift/SwiftUI e CoreBluetooth, preparado para a amaran 60x S. Faz o pareamento diretamente com a luz e não exige celular, Sidus Link, amaran Desktop, Node, Python ou servidor web durante o uso.
+# Sua amaran, na barra de menus do Mac.
 
-Projeto independente, sob [licença MIT](LICENSE), sem vínculo oficial com amaran ou Aputure.
+Ligue, ajuste a intensidade e encontre a temperatura certa sem sair do que está fazendo. O **Lume** conecta sua luz diretamente ao Mac por Bluetooth, em um painel nativo com a identidade glass do macOS.
 
-[English](README.en.md) · [Compatibilidade e adaptação de modelos](COMPATIBILITY.md) · [Como contribuir](CONTRIBUTING.md)
+<p>
+  <a href="https://github.com/joefaria/lume-amaran/releases/latest/download/Lume-macOS.zip"><img src="docs/media/download.svg" alt="Baixar para Mac" width="224" height="48"></a>
+  <a href="docs/APOIAR.md"><img src="docs/media/support.svg" alt="Apoiar com R$ 5 via Pix" width="248" height="48"></a>
+</p>
 
-<img src="docs/preview-light.png" alt="Painel glass do Lume no modo claro" width="336"> <img src="docs/preview-dark.png" alt="Painel glass do Lume no modo escuro" width="336">
+**Apple Silicon · macOS 13+ · Código aberto · MIT**
 
-*Capturas do painel nativo. Veja os [detalhes do design](docs/DESIGN.md) para materiais e acessibilidade.*
+[English](README.en.md) · [Como conectar](#comece-em-poucos-passos) · [Compatibilidade](COMPATIBILITY.md) · [Contribuir com código](CONTRIBUTING.md)
 
-## Download
+## Um pequeno painel. O controle que você precisa.
 
-Baixe `Lume-macOS.zip` em [Releases](https://github.com/joefaria/lume-amaran/releases), descompacte e abra `Lume.app`. O executável é para Apple Silicon (M1 ou posterior), com destino mínimo de macOS 13. Não há versão Intel validada. A interface está em português.
+<table>
+<tr>
+<td width="33%" valign="top">
+<img src="docs/media/power.svg" width="24" height="24" alt="">
+<h3>Ligue e apague</h3>
+Controle o emissor sem interromper a conexão Bluetooth.
+</td>
+<td width="33%" valign="top">
+<img src="docs/media/sun.svg" width="24" height="24" alt="">
+<h3>Encontre a intensidade</h3>
+Ajuste de 0 a 100%, com controles que continuam livres durante o envio.
+</td>
+<td width="33%" valign="top">
+<img src="docs/media/thermometer.svg" width="24" height="24" alt="">
+<h3>Escolha o clima</h3>
+De 2700 a 6500 K, com um brilho de fundo que acompanha a temperatura da luz acesa.
+</td>
+</tr>
+</table>
 
-## Compatibilidade
+## Feito para se sentir em casa no Mac.
 
-**Validado com a amaran 60x S. Outros modelos ainda não foram testados com o Lume.** A base Bluetooth pode ser adaptada, mas o código atual fixa a faixa em 2700–6500 K e controla uma luz. Não inclui RGB/HSI, efeitos ou grupos. O nome 60x S mostrado para um dispositivo genérico não é detecção automática de modelo. Consulte [COMPATIBILITY.md](COMPATIBILITY.md) antes de testar outra luz.
+<p align="center">
+  <img src="docs/preview-light.png" alt="Captura real do Lume no modo claro, com controles de intensidade e temperatura" width="44%">
+  &nbsp;
+  <img src="docs/preview-dark.png" alt="Captura real do Lume no modo escuro, com o gradiente de temperatura ao fundo" width="44%">
+</p>
 
-## Estado desta entrega
+<p align="center"><sub>Capturas do aplicativo nativo · Aparência clara e escura · Símbolo monocromático na barra de menus</sub></p>
 
-- App compilado e assinado localmente para Apple Silicon, macOS 13 ou posterior.
-- Ícone na barra de menus, popover, preferências e busca Bluetooth conferidos no Mac.
-- Controles implementados: acender/apagar o emissor, intensidade de 0 a 100%, temperatura de 2700 a 6500 K e três ajustes rápidos.
-- Pareamento PB-GATT completo, configuração do controle amaran e importação opcional implementados.
-- 89 testes locais de protocolo, autenticação, pareamento, persistência e sequência de comandos passaram. Há um teste de duas pontas com chaves P-256 independentes, rejeição de confirmação adulterada e transporte segmentado com DeviceKey.
-- Pareamento físico direto concluído com a luz próxima anunciada como `Mesh Device`.
-- Leitura real confirmada: luz acesa, intensidade de 20% e temperatura de 4500 K.
-- Reconexão em novo processo confirmada. Controle real de brilho validado: 20% → 15% → 20%, com cada valor confirmado pela luz. A temperatura permaneceu em 4500 K.
-- Ajuste físico de temperatura confirmado: 4500 K → 4600 K → 4500 K. Liga/desliga confirmado: acesa → apagada → acesa. Ambos preservaram brilho de 20%.
-- Versão 0.3.3 instalada em `~/Applications/Lume.app`. O painel real foi conferido conectado, com os controles habilitados e leitura de mudanças posteriores no brilho.
-- O app não redefine Bluetooth nem atualiza firmware. Só inicia um novo pareamento quando uma luz pronta é selecionada. Uma luz que guarde um vínculo antigo exige BT Reset físico feito pelo usuário.
+O painel acompanha a aparência do sistema, com opção de escolher Claro ou Escuro. Usa **Liquid Glass no macOS 26+**, material translúcido nas versões anteriores e ícones Phosphor. Respeita os ajustes de acessibilidade de contraste, transparência e movimento.
 
-## Abrir
+Sem celular ou Sidus Link durante o uso. Sem servidor em segundo plano. As credenciais ficam no **Chaves do macOS** e o controle acontece localmente por Bluetooth.
 
-Descompacte `Lume-macOS.zip` e abra `Lume.app`. Um símbolo orbital monocromático aparece na barra de menus. Clique nele para abrir o painel. No menu de opções, abra Ajustes para escolher Sistema, Claro ou Escuro e solicitar a abertura ao iniciar sessão; essa opção vem desligada.
+## Comece em poucos passos
 
-A assinatura é local/ad-hoc, sem notarização Apple. A verificação local de assinatura não equivale à distribuição pela App Store ou aprovação de Gatekeeper em outro Mac.
+| | O que fazer |
+| :--- | :--- |
+| **01 · Baixe** | Baixe o [Lume para Mac](https://github.com/joefaria/lume-amaran/releases/latest/download/Lume-macOS.zip), descompacte e mova `Lume.app` para Aplicativos. |
+| **02 · Abra** | Abra o Lume, autorize o Bluetooth quando o macOS pedir e clique no símbolo orbital na barra de menus. |
+| **03 · Conecte** | Ligue a amaran perto do Mac. Clique em **Buscar minha amaran** e selecione sua luz marcada **Pronta para parear**. Ela pode aparecer como `Mesh Device`. |
+| **04 · Ajuste** | Aguarde o pareamento e a leitura do estado da luz. Depois, controle intensidade, temperatura e liga/desliga pelo painel. |
 
-## Conectar diretamente, sem celular
+Se a luz ainda estiver vinculada a outra rede Bluetooth, faça **BT Reset** na própria luz e aguarde **Success** antes de buscar. Isso remove o pareamento anterior; o Lume não executa esse reset. Parear ou abrir o app preserva os ajustes de iluminação atuais.
 
-1. Ligue a amaran e aproxime-a do Mac.
-2. Se a luz ainda guardar um vínculo antigo, use **BT Reset** na própria luz e aguarde **Success**. Isso remove o pareamento anterior. O Lume não executa esse reset.
-3. No Lume, clique em **Buscar minha amaran** e selecione a sua luz marcada como **Pronta para parear**. Ela pode aparecer como `Mesh Device`.
-4. Aguarde a criação da conexão e a configuração dos controles. A luz permanece com os ajustes de iluminação atuais.
-5. Os controles só ficam disponíveis depois de receber o estado real da luz.
+<details>
+<summary><strong>Requisitos e informações sobre a instalação</strong></summary>
 
-As credenciais são salvas localmente antes de enviar os dados finais de pareamento, permitindo retomar a configuração caso a conexão caia. A leitura da composição, o envio da chave de aplicação e o vínculo ao modelo de controle precisam ser confirmados pela luz. Não há dependência do aplicativo oficial.
+- **Mac com Apple Silicon (M1 ou posterior)** e macOS 13 ou posterior. Não há versão Intel validada; outras versões do macOS além do Mac de desenvolvimento ainda precisam de validação.
+- O app é assinado localmente, **sem notarização Apple**. O macOS pode bloquear uma versão baixada. A verificação da assinatura local não equivale à aprovação de Gatekeeper em outro Mac.
+- A interface está em português. O executável não depende de Node, Python ou outros pacotes durante o uso.
+- A abertura ao iniciar sessão é opcional e vem desligada. A reconexão após uma queda é manual nesta versão.
+- Já tem uma configuração de rede? Veja a [importação opcional](docs/GUIA.pt-BR.md#importação-opcional-de-uma-configuração-existente).
 
-## Importação opcional de uma configuração existente
+</details>
 
-O app precisa conhecer os dados da rede Bluetooth existente. A busca por Bluetooth não recupera essas informações.
+## Sua luz é compatível?
 
-Em **Já tenho uma configuração… → Sidus Link / arquivo…**, o importador aceita:
+| Validado com uma luz real | Ainda depende de adaptação e testes |
+| :--- | :--- |
+| **amaran 60x S** — pareamento, reconexão, liga/desliga, intensidade e temperatura. | Outros modelos amaran, luzes de branco fixo, RGB/HSI, efeitos, grupos e múltiplas luzes. |
 
-1. Um JSON compatível do Sidus contendo `netKeys`, `appKeys` e `nodes`, com uma rede e uma chave de aplicação. Também aceita exportações de `wesbos/amaran-BLE-control` e `neyako/amaran-hacs`.
-2. Uma pasta de backup local **já existente e não criptografado** do iPhone. O importador consulta apenas os JSON de iluminação em `Documents/mesh/` dos domínios do Sidus Link/Sidus Link Pro. Outros aplicativos e arquivos pessoais não são lidos.
+A base pode evoluir com os pedidos da comunidade. Ter Bluetooth ou funcionar no Sidus Link, por si só, não confirma compatibilidade com o Lume.
 
-**Backups criptografados ainda não são suportados por este importador. Não desative a criptografia para usar o app.** Uma extração local específica e com senha pode ser preparada em uma próxima etapa, caso esse seja o caminho escolhido. A presença desses JSON varia por versão do Sidus e precisa ser confirmada no backup real.
+[Ver os limites atuais](COMPATIBILITY.md) · [Pedir suporte ao seu modelo](https://github.com/joefaria/lume-amaran/issues/new)
 
-O fluxo alternativo **Usar amaran Desktop…** lê uma configuração local do aplicativo oficial. Ele não instala nem abre o aplicativo oficial, nem importa automaticamente dados do Sidus do iPhone. Caso a luz precise ser pareada novamente no aplicativo oficial, isso exige uma decisão separada do usuário.
+## Apoie o Lume
 
-Depois de importar, selecione sua amaran 60x S. Ligue a luz, aproxime o Mac e conecte. A identidade da rede e as mensagens são autenticadas. Os controles só são liberados depois que a luz responde com seu estado. Se o Sidus Link estiver ocupando a conexão, pode ser necessário fechá-lo durante o teste.
+O Lume é gratuito e de código aberto. Se ele ajudou no seu dia, você pode contribuir com **R$ 5 via Pix** para apoiar a continuidade do projeto. É totalmente opcional.
 
-## Interface glass
+<a href="docs/APOIAR.md"><img src="docs/media/support.svg" alt="Contribuir com R$ 5 via Pix — abrir QR Code e copia e cola" width="248" height="48"></a>
 
-O painel espacial reúne liga/desliga, intensidade e temperatura em dois módulos de vidro com escalas discretas. Usa Liquid Glass nativo no macOS 26 ou posterior e material translúcido nas versões anteriores. Respeita Reduzir Transparência e Aumentar Contraste. Os ícones de interface são Phosphor; o ícone glass do aplicativo é separado do símbolo monocromático da barra de menus. Ajustes rápidos, conexão e preferências ficam no menu de opções.
+O botão abre o **QR Code e o Pix copia e cola**. Você conclui a contribuição no aplicativo do seu banco.
 
-Com a luz conectada e o emissor aceso, um gradiente ambiente aparece atrás dos controles e acompanha a temperatura confirmada: âmbar nas temperaturas quentes e azul suave nas frias. Ele desaparece quando o emissor apaga ou a conexão cai. A decoração fica oculta com Reduzir Transparência ou Aumentar Contraste, e a transição respeita Reduzir Movimento.
+Também ajuda muito [reportar um problema](https://github.com/joefaria/lume-amaran/issues), testar sua luz ou [contribuir com código](CONTRIBUTING.md).
 
-## Comportamento
-
-- Abrir o app consulta o estado, mas nunca acende a luz nem aplica brilho/temperatura anteriores.
-- Apagar refere-se ao emissor; a luz continua energizada para receber Bluetooth.
-- Os ajustes rápidos alteram brilho e temperatura com a luz já acesa; não ligam o emissor automaticamente.
-- Os sliders continuam ativos enquanto a confirmação acontece em segundo plano, sem mensagem de Aplicando. Movimentos rápidos guardam o último valor de cada controle e enviam uma atualização de cada vez. Uma resposta anterior não substitui o valor que você está arrastando.
-- Uma falha real continua visível. Sem confirmação em cinco segundos, os ajustes pendentes são descartados e os controles retornam ao último estado recebido, preservando um arrasto em andamento.
-- Reconexão após uma queda é manual nesta versão, pelo botão Reconectar.
-- Mudanças são enviadas ao soltar o slider, evitando uma sequência excessiva de comandos.
-
-## Dados locais
-
-As credenciais geradas no pareamento ou importadas ficam no Chaves do macOS, em `dev.jonatas.lume.bluetooth`. Não são impressas em logs nem incluídas na entrega.
-
-Cada rede recebe um endereço de origem independente na faixa `0x7000…0x7FFE`, preservado entre execuções. Os contadores são gravados antes de cada envio, em `~/Library/Application Support/Lume/sequence-<networkID>.json`, com permissão `0600`. Esse arquivo não contém as chaves da rede. Nunca reiniciamos o contador silenciosamente quando um arquivo está corrompido. A comunicação só começa após receber um beacon autenticado da rede.
-
-O app não transmite dados pela internet. O link de ajuda apenas abre o site oficial quando clicado.
-
-## Desenvolvimento
+## Para quem quer construir junto
 
 ```sh
+git clone https://github.com/joefaria/lume-amaran.git
+cd lume-amaran
 zsh test.sh
 zsh build.sh
-# O aplicativo compactado fica em dist/Lume-macOS.zip
 ```
 
-Requer Command Line Tools com Swift moderno e Node somente para gerar os vetores independentes dos testes. O aplicativo entregue é um executável nativo sem essas dependências.
+O pacote fica em `dist/Lume-macOS.zip`. São **89 verificações automatizadas** de protocolo, autenticação, pareamento, importação, persistência e sequência de comandos. Os testes usam dados sintéticos ou publicados e não acessam sua luz nem o Chaves.
 
-Os testes verificam CMAC NIST, AES-CCM comparado ao OpenSSL do Node, rejeição de mensagens adulteradas, identificação da rede, beacon autenticado, pacotes completos, comandos de referência, limites da 60x S, importação dos formatos suportados, seleção de arquivos de backup e persistência dos contadores entre reinícios. O pareamento é exercitado de ponta a ponta com um dispositivo simulado por outra chave P-256, confirmação do transcript, descriptografia dos dados de rede, derivação de DeviceKey, mensagens fora de ordem e rejeição de autenticação inválida. A configuração testa fragmentação, recomposição fora de ordem, confirmação de segmentos e vínculo ao modelo de controle. Nenhum desses testes substitui a validação com a luz real.
+[Guia técnico e requisitos de desenvolvimento](docs/GUIA.pt-BR.md) · [Como contribuir](CONTRIBUTING.md) · [Notas de design](docs/DESIGN.md)
 
-Para inspecionar a interface sem Bluetooth:
+---
 
-```sh
-/caminho/para/Lume.app/Contents/MacOS/Lume --render /caminho/preview.png connected
-```
-
-Os estados `connected`, `setup`, `offline`, `pending` e `error` geram imagens com dados ilustrativos e encerram o processo. O renderizador é uma prévia de layout e pode não capturar fielmente o vidro e a vibrância do compositor do macOS. As imagens `docs/preview-light.png` e `docs/preview-dark.png` mostram o painel nativo.
-
-## Licença
-
-[MIT](LICENSE), copyright 2026 Jonatas Faria. Os avisos de código de terceiros são preservados em [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) e incluídos no aplicativo. As credenciais e os relatórios locais de Bluetooth não fazem parte do repositório.
-
-## Fontes
-
-- https://github.com/wesbos/amaran-BLE-control — codificação Telink e referência de transporte (MIT).
-- https://github.com/neyako/amaran-hacs — beacon autenticado, filtro de proxy, isolamento dos endereços e leitura de estado (MIT).
-- https://github.com/aarondfrancis/amaran/blob/main/scripts/sidus-backup-import — referência de localização e formato dos JSON do Sidus em backups iOS; implementação do importador feita em Swift neste projeto.
-- https://help.amarancreators.com/en/amaran-60xs/controls — limites documentados da 60x S.
-- https://www.bluetooth.com/blog/provisioning-a-bluetooth-mesh-network-part-2/ — etapas de autenticação e distribuição dos dados de pareamento PB-GATT.
-
-Os avisos das implementações MIT estão em THIRD_PARTY_NOTICES.md e dentro do app. O motor REA não foi utilizado: esta etapa trabalha com código-fonte público já disponível, não com decompilação de um aplicativo proprietário.
+<p align="center">
+  <img src="Resources/AppIcon.png" width="56" height="56" alt="Ícone glass do Lume"><br>
+  made by <a href="https://www.instagram.com/jonatasfaria/">@jonatasfaria</a><br>
+  <sub>Projeto independente, sem vínculo oficial com amaran ou Aputure.<br>
+  <a href="LICENSE">Licença MIT</a> · <a href="THIRD_PARTY_NOTICES.md">Créditos e referências</a></sub>
+</p>

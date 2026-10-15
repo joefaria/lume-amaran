@@ -4,7 +4,7 @@ A native macOS glass control panel for your amaran light. Pair directly over Blu
 
 **Verified with the amaran 60x S. Other models are not verified in Lume yet.**
 
-[Português](README.md) · [Download](https://github.com/joefaria/lume-amaran/releases) · [Compatibility](COMPATIBILITY.md) · [Contributing](CONTRIBUTING.md)
+[Português](README.md) · [Support with R$5 via Pix](docs/APOIAR.md) · [Download](https://github.com/joefaria/lume-amaran/releases) · [Compatibility](COMPATIBILITY.md) · [Contributing](CONTRIBUTING.md)
 
 <img src="docs/preview-light.png" alt="Lume glass panel in light appearance" width="336"> <img src="docs/preview-dark.png" alt="Lume glass panel in dark appearance" width="336">
 
@@ -29,7 +29,7 @@ The downloadable app is locally ad-hoc signed and **not Apple-notarized**. macOS
 
 Pairing does not change brightness or temperature. Opening Lume reads the light's state and does not apply old settings. Power controls the emitter while the fixture remains electrically powered so Bluetooth stays available. Reconnection after a dropped connection is manual in this version.
 
-An optional advanced import accepts supported lighting JSON, an existing unencrypted iPhone backup, or an existing amaran Desktop database. This is not needed for direct pairing. See [the Portuguese guide](README.md#importação-opcional-de-uma-configuração-existente) for its exact boundaries. Do not weaken backup encryption to use the importer.
+An optional advanced import accepts supported lighting JSON, an existing unencrypted iPhone backup, or an existing amaran Desktop database. This is not needed for direct pairing. See [the Portuguese guide](docs/GUIA.pt-BR.md#importação-opcional-de-uma-configuração-existente) for its exact boundaries. Do not weaken backup encryption to use the importer.
 
 ## What works today
 
