@@ -25,7 +25,7 @@ Baixe `Lume-macOS.zip` em [Releases](https://github.com/joefaria/lume-amaran/rel
 - Leitura real confirmada: luz acesa, intensidade de 20% e temperatura de 4500 K.
 - Reconexão em novo processo confirmada. Controle real de brilho validado: 20% → 15% → 20%, com cada valor confirmado pela luz. A temperatura permaneceu em 4500 K.
 - Ajuste físico de temperatura confirmado: 4500 K → 4600 K → 4500 K. Liga/desliga confirmado: acesa → apagada → acesa. Ambos preservaram brilho de 20%.
-- Versão 0.3.2 instalada em `~/Applications/Lume.app`. O painel real foi conferido conectado, com os controles habilitados e leitura de mudanças posteriores no brilho.
+- Versão 0.3.3 instalada em `~/Applications/Lume.app`. O painel real foi conferido conectado, com os controles habilitados e leitura de mudanças posteriores no brilho.
 - O app não redefine Bluetooth nem atualiza firmware. Só inicia um novo pareamento quando uma luz pronta é selecionada. Uma luz que guarde um vínculo antigo exige BT Reset físico feito pelo usuário.
 
 ## Abrir

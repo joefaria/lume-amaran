@@ -45,6 +45,15 @@ struct Panel: View {
                     }
                 }.padding(.horizontal, 16).padding(.bottom, 16)
             }.scrollIndicators(.hidden)
+            HStack(spacing: 3) {
+                Text("made by").foregroundStyle(.secondary)
+                Link("@jonatasfaria", destination: URL(string: "https://www.instagram.com/jonatasfaria/")!)
+                    .foregroundStyle(.secondary).underline()
+                    .help("Instagram de Jonatas Faria")
+                    .accessibilityLabel("@jonatasfaria no Instagram")
+            }
+            .font(.system(size: 11))
+            .frame(maxWidth: .infinity).padding(.top, 2).padding(.bottom, 10)
         }
         .frame(width: Self.width, height: Self.height)
         .background {
