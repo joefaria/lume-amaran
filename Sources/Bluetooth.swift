@@ -26,6 +26,8 @@ struct NearbyLight: Identifiable { let id: UUID; let name: String; let rssi: Int
     @Published var lastConfirmed: Date?
     @Published var desiredBrightness: Double = 50
     @Published var desiredKelvin: Double = 5600
+    var editingBrightness = false
+    var editingKelvin = false
     var preview = false
     private(set) var diagnostics: [String: Any] = [:]
     private var central: CBCentralManager?
@@ -44,8 +46,8 @@ struct NearbyLight: Identifiable { let id: UUID; let name: String; let rssi: Int
     private var queue: [Data] = []
     private var writing = false
     private var requestedScan = false
-    private var expected: LightStatus?
-    private var expectedKind = ""
+    private var controls = LightControlPipeline()
+    private var commandStatusRequest: DispatchWorkItem?
     private let proxy = CBUUID(string: "1828")
     private let provisioning = CBUUID(string: "1827")
     private var discovered: [UUID: CBPeripheral] = [:]
@@ -59,7 +61,7 @@ struct NearbyLight: Identifiable { let id: UUID; let name: String; let rssi: Int
     private var configAttempts = 0
     private var configMessage: Bytes = []
     private var setupScan = false
-    var canControl: Bool { ready && status != nil && !pending && !showSetup }
+    var canControl: Bool { ready && status != nil && !showSetup }
 
     override init() { super.init() }
     func restore() {
@@ -180,10 +182,12 @@ struct NearbyLight: Identifiable { let id: UUID; let name: String; let rssi: Int
         }
     }
     func disconnect() {
+        controls.cancel(); commandStatusRequest?.cancel()
+        editingBrightness = false; editingKelvin = false
         requestedScan = false; central?.stopScan(); timeout?.cancel(); pendingTimeout?.cancel(); timer?.invalidate(); configRetry?.cancel()
         if let peripheral { central?.cancelPeripheralConnection(peripheral) }
         peripheral = nil; input = nil; queue = []; writing = false; ready = false; scanning = false; pending = false; connecting = false
-        ivVerified = false; filterSent = false; rx = []; rxType = nil; expected = nil
+        ivVerified = false; filterSent = false; rx = []; rxType = nil
         pairing = false; pairingSession = nil; switchingToProxy = false; configStage = 0; binding = nil; deviceReceiver = DeviceAccessReceiver()
     }
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -201,7 +205,10 @@ struct NearbyLight: Identifiable { let id: UUID; let name: String; let rssi: Int
         case .poweredOn: break
         default: connection = "Preparando Bluetooth…"
         }
-        if central?.state != .poweredOn { ready = false; scanning = false; status = nil; timer?.invalidate() }
+        if central?.state != .poweredOn {
+            ready = false; scanning = false; status = nil; timer?.invalidate()
+            controls.cancel(); pending = false; pendingTimeout?.cancel(); commandStatusRequest?.cancel()
+        }
     }
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
         let serviceIDs = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] ?? []
@@ -314,16 +321,12 @@ struct NearbyLight: Identifiable { let id: UUID; let name: String; let rssi: Int
         if config.needsConfiguration == true { receiveConfig(p); return }
         if p.first == 0, let actual = mesh.status(p, iv: sequence.state.iv, target: config.address) {
             status = actual; lastConfirmed = Date()
-            if let expected {
-                let matches: Bool
-                switch expectedKind {
-                case "power": matches = expected.on == actual.on
-                case "brightness": matches = abs(expected.brightness - actual.brightness) < 1
-                default: matches = abs(expected.brightness - actual.brightness) < 1 && abs(expected.kelvin - actual.kelvin) <= 100
-                }
-                if matches { self.expected = nil; pending = false; pendingTimeout?.cancel(); self.error = nil }
+            if controls.acknowledge(actual) {
+                pendingTimeout?.cancel(); commandStatusRequest?.cancel(); self.error = nil
+                sendNextAdjustment()
             }
-            if !pending { desiredBrightness = actual.brightness; desiredKelvin = actual.kelvin }
+            pending = controls.pending
+            synchronizeControls()
         }
     }
     private func markReady() {
@@ -419,37 +422,50 @@ struct NearbyLight: Identifiable { let id: UUID; let name: String; let rssi: Int
     }
     func togglePower() {
         guard canControl, let status else { return }
-        setPower(!status.on)
+        setPower(!(controls.requestedPower ?? status.on))
     }
     func setPower(_ on: Bool) {
-        guard canControl, let status else { return }
-        command(Telink.power(on), expecting: LightStatus(on: on, brightness: status.brightness, kelvin: status.kelvin), kind: "power")
+        submit(.power(on))
     }
     func setBrightness() {
-        guard canControl, let status else { return }
-        command(Telink.brightness(desiredBrightness), expecting: LightStatus(on: status.on, brightness: desiredBrightness, kelvin: status.kelvin), kind: "brightness")
+        submit(.brightness(desiredBrightness))
     }
     func setKelvin() {
-        guard canControl, let status else { return }
-        command(Telink.cct(desiredKelvin, brightness: status.brightness), expecting: LightStatus(on: status.on, brightness: status.brightness, kelvin: desiredKelvin), kind: "cct")
+        submit(.temperature(desiredKelvin))
     }
     func apply(kelvin: Double, brightness: Double) {
-        guard canControl, let status else { return }
+        guard canControl else { return }
         desiredKelvin = kelvin; desiredBrightness = brightness
-        command(Telink.cct(kelvin, brightness: brightness), expecting: LightStatus(on: status.on, brightness: brightness, kelvin: kelvin), kind: "cct")
+        submit(.preset(kelvin: kelvin, brightness: brightness))
     }
-    private func command(_ payload: Bytes, expecting expected: LightStatus, kind: String) {
+    private func submit(_ adjustment: LightControlPipeline.Adjustment) {
+        guard canControl else { return }
+        error = nil; controls.enqueue(adjustment); pending = controls.pending
+        sendNextAdjustment()
+    }
+    private func synchronizeControls() {
+        guard let status else { return }
+        if !editingBrightness && !controls.holdsBrightness { desiredBrightness = status.brightness }
+        if !editingKelvin && !controls.holdsKelvin { desiredKelvin = status.kelvin }
+    }
+    private func sendNextAdjustment() {
+        guard let status, let next = controls.takeNext(confirmed: status) else { return }
         do {
-            self.error = nil; self.expected = expected; expectedKind = kind; pending = true
-            try send(payload)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in self?.requestStatus() }
+            pending = true
+            try send(next.payload)
+            commandStatusRequest?.cancel()
+            let query = DispatchWorkItem { [weak self] in self?.requestStatus() }
+            commandStatusRequest = query; DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: query)
             pendingTimeout?.cancel()
             let work = DispatchWorkItem { [weak self] in
-                guard let self else { return }; self.pending = false; self.expected = nil
-                if let status = self.status { self.desiredBrightness = status.brightness; self.desiredKelvin = status.kelvin }
+                guard let self else { return }
+                self.controls.cancel(); self.pending = false; self.commandStatusRequest?.cancel(); self.synchronizeControls()
                 self.error = "O ajuste foi enviado, mas a luz ainda não confirmou. Atualize o estado antes de tentar novamente."
             }; pendingTimeout = work; DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: work)
-        } catch { pending = false; self.expected = nil; self.error = error.localizedDescription }
+        } catch {
+            controls.cancel(); pending = false; pendingTimeout?.cancel(); commandStatusRequest?.cancel()
+            synchronizeControls(); self.error = error.localizedDescription
+        }
     }
     private func armTimeout(_ seconds: Double, _ callback: @escaping @MainActor () -> Void) {
         timeout?.cancel(); let work = DispatchWorkItem { callback() }; timeout = work

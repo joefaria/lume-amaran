@@ -41,11 +41,13 @@ An optional advanced import accepts supported lighting JSON, an existing unencry
 - Direct PB-GATT pairing and authenticated Mesh Proxy connection.
 - Emitter power and 0–100% brightness.
 - White temperature **2700–6500 K**. Three fixed presets are available under the options menu.
+- Sliders stay active while commands are confirmed in the background, without an applying spinner.
+- One command in flight; rapid changes retain the latest unsent value per control, including combined brightness/CCT edits.
 - Commands confirmed by the light, with explicit timeout handling.
 - Optional launch at login, disabled by default.
 - Persistent transmission counters reserved before sending.
 
-The 60x S has passed real pairing, reconnection, power, brightness and temperature checks. There are 65 automated checks for cryptography, authentication, provisioning, import and persistence.
+The 60x S has passed real pairing, reconnection, power, brightness and temperature checks. There are 89 automated checks for cryptography, authentication, provisioning, import, persistence and command sequencing.
 
 ## Can it control any amaran?
 
@@ -74,7 +76,7 @@ To render the interface without connecting to hardware:
 /path/to/Lume.app/Contents/MacOS/Lume --render /tmp/lume-preview.png connected
 ```
 
-Render states include `connected`, `setup`, `offline`, `pending`, `error`, `off`, `warm` and `cool`. Their light settings are illustrative. Development-only `--pair`, `--verify-control`, `--verify-temperature` and `--verify-power` modes perform real Bluetooth operations; the verification modes briefly change and restore the relevant setting, so they are not part of the automated tests.
+Render states include `connected`, `setup`, `offline`, `pending`, `error`, `off`, `warm` and `cool`. Their light settings are illustrative. Development-only `--pair`, `--verify-control`, `--verify-temperature`, `--verify-power` and `--verify-responsive` modes perform real Bluetooth operations; the verification modes briefly change and restore the relevant setting, so they are not part of the automated tests.
 
 The offscreen `--render` helper is a layout preview; macOS compositor glass/vibrancy may not be captured faithfully. Use the native app for final appearance validation.
 

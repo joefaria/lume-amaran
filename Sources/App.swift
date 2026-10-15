@@ -21,7 +21,7 @@ import SwiftUI
         if let index = args.firstIndex(of: "--verify-control"), args.count > index + 1 {
             operate(path: args[index + 1], pair: nil, test: true); return
         }
-        for (argument, kind) in [("--verify-temperature", "temperature"), ("--verify-power", "power")] {
+        for (argument, kind) in [("--verify-temperature", "temperature"), ("--verify-power", "power"), ("--verify-responsive", "responsive")] {
             if let index = args.firstIndex(of: argument), args.count > index + 1 {
                 operate(path: args[index + 1], pair: nil, test: true, kind: kind); return
             }
@@ -60,6 +60,7 @@ import SwiftUI
         let began = Date(); var pairingStarted = false; var phase = 0
         var lastProgress = ""; var lastScan = began
         var original: Double?; var target: Double?; var changed = false
+        var originalKelvin: Double?; var targetKelvin: Double?; var stayedInteractive = true
         if pair == nil { light.restore() } else { light.connect() }
         operationTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
             Task { @MainActor in
@@ -72,6 +73,7 @@ import SwiftUI
                 @MainActor func apply(_ value: Double) {
                     if kind == "temperature" { self.light.desiredKelvin = value; self.light.setKelvin() }
                     else if kind == "power" { self.light.setPower(value > 0) }
+                    else if kind == "responsive", phase > 0, let originalKelvin { self.light.apply(kelvin: originalKelvin, brightness: value) }
                     else { self.light.desiredBrightness = value; self.light.setBrightness() }
                 }
                 let progress = "\(phase):\(self.light.connection):\(self.light.error ?? "")"
@@ -91,6 +93,11 @@ import SwiftUI
                     }
                     if let original { result["originalValue"] = original }
                     if let target { result["testedValue"] = target }
+                    if kind == "responsive" {
+                        result["interactiveWhilePending"] = stayedInteractive
+                        result["originalKelvin"] = originalKelvin as Any? ?? NSNull()
+                        result["testedKelvin"] = targetKelvin as Any? ?? NSNull()
+                    }
                     result["savedPeripheral"] = self.light.configuration?.peripheralUUID as Any? ?? NSNull()
                     do {
                         let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys])
@@ -106,17 +113,31 @@ import SwiftUI
                 if pair != nil, !pairingStarted, self.light.scanCompleted, Date().timeIntervalSince(lastScan) > 15 {
                     lastScan = Date(); self.light.connect()
                 }
-                if self.light.canControl, self.light.error == nil, let status = self.light.status {
+                if kind == "responsive", phase == 1, self.light.error == nil, let target, let targetKelvin {
+                    stayedInteractive = stayedInteractive && self.light.canControl
+                        && abs(self.light.desiredBrightness - target) < 0.1 && abs(self.light.desiredKelvin - targetKelvin) < 0.1
+                }
+                if self.light.canControl, !self.light.pending, self.light.error == nil, let status = self.light.status {
                     if !test || (phase == 0 && !status.on && kind != "power") { finish(); return }
                     if phase == 0 {
                         original = value(status)
                         if kind == "temperature" { target = status.kelvin < 6500 ? status.kelvin + 100 : status.kelvin - 100 }
                         else if kind == "power" { target = status.on ? 0 : 1 }
                         else { target = status.brightness >= 5 ? status.brightness - 5 : status.brightness + 5 }
-                        apply(target!); phase = 1
-                    } else if phase == 1, let target, abs(value(status) - target) < 0.1 {
+                        if kind == "responsive" {
+                            originalKelvin = status.kelvin
+                            targetKelvin = status.kelvin < 6500 ? status.kelvin + 100 : status.kelvin - 100
+                            apply(target! + 1)
+                            stayedInteractive = self.light.canControl && self.light.pending
+                            self.light.desiredKelvin = targetKelvin!; self.light.setKelvin()
+                            apply(target!)
+                        } else { apply(target!) }
+                        phase = 1
+                    } else if phase == 1, let target, abs(value(status) - target) < 0.1,
+                              kind != "responsive" || abs(status.kelvin - targetKelvin!) < 0.1 {
                         changed = true; apply(original!); phase = 2
-                    } else if phase == 2, let original, abs(value(status) - original) < 0.1 {
+                    } else if phase == 2, let original, abs(value(status) - original) < 0.1,
+                              kind != "responsive" || abs(status.kelvin - originalKelvin!) < 0.1 {
                         finish(); return
                     }
                 }

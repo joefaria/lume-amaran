@@ -25,3 +25,9 @@ Native app screenshots are used for final appearance review because offscreen bi
 ## 0.3.1 · Temperature ambience
 
 A soft, asymmetrical radial gradient sits above the root material and below all controls. Its palette interpolates amber (2700 K), warm neutral (4500 K), and pale blue (6500 K). This is an interface palette, not a calibrated spectral simulation. It uses confirmed `LightStatus.kelvin` and is visible only when the selected fixture is connected and reports its emitter on. Setup/settings, disconnected and off states stay neutral. Reduced transparency or increased contrast suppress the decoration; reduced motion suppresses the 450 ms transitions. No Bluetooth behavior changes.
+
+## 0.3.2 · Continuous slider interaction
+
+Ordinary brightness and temperature changes no longer disable the controls or replace the connection label with a spinner/Aplicando message. Authenticated confirmation remains internal. A bounded pipeline sends one command at a time, merging the latest unsent value for each control. CCT packets preserve the latest requested brightness. Slider gestures protect their displayed values from status polling and older acknowledgements until released. Real send failures/timeouts are still reported; disconnects cancel queued changes. The background gradient remains based on confirmed light state.
+
+24 additional regression checks cover delayed/out-of-order confirmation, mixed brightness/CCT changes, bursts, rapid power changes, presets and cancellation. The total suite contains 89 checks.

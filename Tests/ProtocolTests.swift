@@ -153,6 +153,66 @@ import CryptoKit
         try check(binding.matches([0x80,0x3e,0,2,0,0,0,0x11,2,1,0]), "successful vendor binding status validated")
         try check(!binding.matches([0x80,0x3e,1,2,0,0,0,0x11,2,1,0]), "rejected binding never becomes ready")
         try rejects("truncated composition") { _ = try VendorBinding.fromComposition(Array(composition.dropLast()), primary: 2) }
-        print("PASS: \(count) protocol, authentication, import and persistence checks")
+        // Simulate delayed and stale responses while a user edits both sliders.
+        // CCT packets include brightness: serializing without merging would
+        // otherwise restore the old intensity when changing temperature.
+        let initial = LightStatus(on: true, brightness: 20, kelvin: 4500)
+        var controls = LightControlPipeline()
+        controls.enqueue(.brightness(30))
+        let first = controls.takeNext(confirmed: initial)!
+        controls.enqueue(.temperature(5000)); controls.enqueue(.brightness(40))
+        controls.enqueue(.temperature(5600)); controls.enqueue(.brightness(50))
+        try check(controls.takeNext(confirmed: initial) == nil, "only one light command in flight")
+        try check(!controls.acknowledge(initial), "old brightness report cannot release the next command")
+        try check(controls.holdsBrightness && controls.holdsKelvin, "both outstanding slider values stay protected")
+        try check(controls.acknowledge(first.target) && controls.pending, "first confirmation preserves newer user input")
+        let combined = controls.takeNext(confirmed: first.target)!
+        try check(combined.target == LightStatus(on: true, brightness: 50, kelvin: 5600), "latest brightness and CCT coalesce across controls")
+        try check(combined.payload == Telink.cct(5600, brightness: 50), "CCT packet never restores obsolete brightness")
+        try check(!controls.acknowledge(first.target), "late acknowledgement cannot finish newer adjustment")
+        try check(!controls.acknowledge(LightStatus(on: true, brightness: 50, kelvin: 5500)), "neighboring 100K step is not mistaken for the target")
+        try check(controls.acknowledge(combined.target) && !controls.pending, "latest combined target confirmed without extra sends")
+        try check(!controls.holdsBrightness && !controls.holdsKelvin, "confirmed sliders resume normal state sync")
+
+        controls.enqueue(.temperature(3200))
+        let temperature = controls.takeNext(confirmed: initial)!
+        controls.enqueue(.brightness(65))
+        try check(controls.acknowledge(temperature.target), "temperature-first adjustment confirmed")
+        let intensity = controls.takeNext(confirmed: temperature.target)!
+        try check(intensity.kind == .brightness && intensity.target.kelvin == 3200 && intensity.target.brightness == 65,
+                  "brightness arriving during CCT preserves the confirmed new temperature")
+        try check(controls.acknowledge(intensity.target) && !controls.pending, "reverse control order drains correctly")
+
+        controls.enqueue(.brightness(1)); let earliest = controls.takeNext(confirmed: initial)!
+        for value in 2...100 { controls.enqueue(.brightness(Double(value))) }
+        try check(controls.acknowledge(earliest.target), "first of rapid slider updates confirmed")
+        let latest = controls.takeNext(confirmed: earliest.target)!
+        try check(latest.target.brightness == 100, "rapid input retains only the latest unsent value")
+        try check(controls.acknowledge(latest.target) && controls.takeNext(confirmed: latest.target) == nil,
+                  "rapid input does not build an obsolete command backlog")
+
+        let off = LightStatus(on: false, brightness: 20, kelvin: 4500)
+        controls.enqueue(.power(true)); let turnOn = controls.takeNext(confirmed: off)!
+        controls.enqueue(.power(false))
+        try check(controls.requestedPower == false, "rapid power toggle uses the latest requested state")
+        try check(controls.acknowledge(turnOn.target), "power-on confirmation keeps queued power-off")
+        let turnOff = controls.takeNext(confirmed: turnOn.target)!
+        try check(turnOff.target.on == false && controls.acknowledge(turnOff.target), "power-off drains after power-on")
+
+        controls.enqueue(.preset(kelvin: 3200, brightness: 25))
+        let preset = controls.takeNext(confirmed: initial)!
+        controls.enqueue(.preset(kelvin: 5600, brightness: 75)); controls.enqueue(.temperature(5000))
+        try check(controls.acknowledge(preset.target), "preset confirmation preserves later intent")
+        let updatedPreset = controls.takeNext(confirmed: preset.target)!
+        try check(updatedPreset.target == LightStatus(on: true, brightness: 75, kelvin: 5000), "slider overrides only its own preset field")
+        controls.enqueue(.brightness(99)); controls.cancel()
+        try check(!controls.pending && !controls.holdsBrightness && !controls.holdsKelvin && controls.requestedPower == nil,
+                  "disconnect or timeout discards all in-flight and unsent intent")
+        try check(controls.takeNext(confirmed: initial) == nil && !controls.acknowledge(updatedPreset.target),
+                  "late response after cancellation cannot restart old commands")
+        controls.enqueue(.preset(kelvin: 9000, brightness: 150))
+        let bounded = controls.takeNext(confirmed: initial)!
+        try check(bounded.target.kelvin == 6500 && bounded.target.brightness == 100, "confirmation target uses the fixture limits")
+        print("PASS: \(count) protocol, authentication, import, persistence and control sequencing checks")
     }
 }

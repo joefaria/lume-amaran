@@ -1,6 +1,6 @@
 # Contributing to Lume
 
-Lume is a small native macOS menu bar app. Keep pairing, authenticated state reporting and persistent sequence counters intact when changing the Bluetooth code.
+Lume is a small native macOS menu bar app. Keep pairing, authenticated state reporting and persistent sequence counters and the latest-value command sequencing intact when changing the Bluetooth code.
 
 ## Build and test
 

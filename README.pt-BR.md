@@ -20,12 +20,12 @@ Baixe `Lume-macOS.zip` em [Releases](https://github.com/joefaria/lume-amaran/rel
 - Ícone na barra de menus, popover, preferências e busca Bluetooth conferidos no Mac.
 - Controles implementados: acender/apagar o emissor, intensidade de 0 a 100%, temperatura de 2700 a 6500 K e três ajustes rápidos.
 - Pareamento PB-GATT completo, configuração do controle amaran e importação opcional implementados.
-- 65 testes locais de protocolo, autenticação, pareamento e persistência passaram. Há um teste de duas pontas com chaves P-256 independentes, rejeição de confirmação adulterada e transporte segmentado com DeviceKey.
+- 89 testes locais de protocolo, autenticação, pareamento, persistência e sequência de comandos passaram. Há um teste de duas pontas com chaves P-256 independentes, rejeição de confirmação adulterada e transporte segmentado com DeviceKey.
 - Pareamento físico direto concluído com a luz próxima anunciada como `Mesh Device`.
 - Leitura real confirmada: luz acesa, intensidade de 20% e temperatura de 4500 K.
 - Reconexão em novo processo confirmada. Controle real de brilho validado: 20% → 15% → 20%, com cada valor confirmado pela luz. A temperatura permaneceu em 4500 K.
 - Ajuste físico de temperatura confirmado: 4500 K → 4600 K → 4500 K. Liga/desliga confirmado: acesa → apagada → acesa. Ambos preservaram brilho de 20%.
-- Versão 0.3.1 instalada em `~/Applications/Lume.app`. O painel real foi conferido conectado, com os controles habilitados e leitura de mudanças posteriores no brilho.
+- Versão 0.3.2 instalada em `~/Applications/Lume.app`. O painel real foi conferido conectado, com os controles habilitados e leitura de mudanças posteriores no brilho.
 - O app não redefine Bluetooth nem atualiza firmware. Só inicia um novo pareamento quando uma luz pronta é selecionada. Uma luz que guarde um vínculo antigo exige BT Reset físico feito pelo usuário.
 
 ## Abrir
@@ -70,7 +70,8 @@ Com a luz conectada e o emissor aceso, um gradiente ambiente aparece atrás dos 
 - Abrir o app consulta o estado, mas nunca acende a luz nem aplica brilho/temperatura anteriores.
 - Apagar refere-se ao emissor; a luz continua energizada para receber Bluetooth.
 - Os ajustes rápidos alteram brilho e temperatura com a luz já acesa; não ligam o emissor automaticamente.
-- Comandos aguardam uma resposta compatível da luz. Sem confirmação em cinco segundos, o painel informa a pendência e retorna ao último estado recebido.
+- Os sliders continuam ativos enquanto a confirmação acontece em segundo plano, sem mensagem de Aplicando. Movimentos rápidos guardam o último valor de cada controle e enviam uma atualização de cada vez. Uma resposta anterior não substitui o valor que você está arrastando.
+- Uma falha real continua visível. Sem confirmação em cinco segundos, os ajustes pendentes são descartados e os controles retornam ao último estado recebido, preservando um arrasto em andamento.
 - Reconexão após uma queda é manual nesta versão, pelo botão Reconectar.
 - Mudanças são enviadas ao soltar o slider, evitando uma sequência excessiva de comandos.
 

@@ -107,9 +107,9 @@ struct Panel: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(light.configuration?.name ?? "amaran").font(.system(size: 15, weight: .semibold)).lineLimit(2)
                     HStack(spacing: 6) {
-                        if light.pending || light.connecting { ProgressView().controlSize(.mini) }
+                        if light.connecting { ProgressView().controlSize(.mini) }
                         else { Circle().fill(light.ready ? Color.green : Color.secondary).frame(width: 5, height: 5) }
-                        Text(light.pending ? "Aplicando…" : light.connection)
+                        Text(light.connection)
                             .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1).help(light.connection)
                     }.accessibilityElement(children: .combine)
                 }
@@ -125,6 +125,7 @@ struct Panel: View {
             }.padding(.horizontal, 3).padding(.bottom, 1)
             instrument(name: "Intensidade", icon: "sun", value: light.status == nil ? "—" : String(format: "%.0f", light.desiredBrightness), unit: "%") {
                 Slider(value: $light.desiredBrightness, in: 0...100, onEditingChanged: { editing in
+                    light.editingBrightness = editing
                     if !editing { light.desiredBrightness = light.desiredBrightness.rounded(); light.setBrightness() }
                 }).tint(signal).disabled(!adjusting)
                     .accessibilityLabel("Intensidade").accessibilityValue("\(Int(light.desiredBrightness)) por cento")
@@ -132,6 +133,7 @@ struct Panel: View {
             }
             instrument(name: "Temperatura", icon: "thermometer", value: light.status == nil ? "—" : String(format: "%.0f", light.desiredKelvin), unit: "K") {
                 Slider(value: $light.desiredKelvin, in: 2700...6500, onEditingChanged: { editing in
+                    light.editingKelvin = editing
                     if !editing { light.desiredKelvin = (light.desiredKelvin / 100).rounded() * 100; light.setKelvin() }
                 }).tint(signal).disabled(!adjusting)
                     .accessibilityLabel("Temperatura de cor").accessibilityValue("\(Int(light.desiredKelvin)) kelvin")

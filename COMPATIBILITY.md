@@ -1,6 +1,6 @@
 # Light compatibility
 
-Lume 0.3.0 was tested with one **amaran 60x S**. It is not a universal amaran controller yet.
+Lume 0.3.2 was tested with one **amaran 60x S**. It is not a universal amaran controller yet.
 
 | Model or capability | Status in Lume |
 | --- | --- |
@@ -35,4 +35,6 @@ To support another model, add its profile and control limits, verify the vendor 
 
 ## Hardware validation record
 
-On 2026-10-15, direct pairing, authenticated status and reconnection in a new process were confirmed with a real 60x S. Tests changed brightness 20% → 15% → 20%, CCT 4500 K → 4600 K → 4500 K, and power on → off → on. Each operation received a matching status from the light. Firmware version was not recorded, so this is not a claim about every firmware release. There are also 65 automated protocol, authentication, provisioning, import and persistence checks; these do not replace hardware validation.
+On 2026-10-15, direct pairing, authenticated status and reconnection in a new process were confirmed with a real 60x S. Tests changed brightness 20% → 15% → 20%, CCT 4500 K → 4600 K → 4500 K, and power on → off → on. Each operation received a matching status from the light. Firmware version was not recorded, so this is not a claim about every firmware release. There are also 89 automated protocol, authentication, provisioning, import and persistence checks; these do not replace hardware validation.
+
+In Lume 0.3.2, rapid mixed control updates were also verified on the same light: brightness 23% → 18% and temperature 6100 K → 6200 K, with intermediate brightness updates coalesced. The controller stayed available while awaiting confirmation, then restored 23% and 6100 K with the emitter on.
